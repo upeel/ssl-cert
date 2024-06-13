@@ -253,27 +253,31 @@
     <b-modal
       ref="filterDate"
       id="filterDate"
-      title="Date Filter"
+      title="Filter by Expiry Date"
     >
       <div class="d-flex" style="justify-content: center; flex-direction: column; align-items: center; gap: 1.25rem">
-        <b-button
-          v-ripple
-          variant="success"
-          style="white-space: nowrap"
-          v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-          @click="filter7days()"
-        >
-          Expire In 7 days
-        </b-button>
-        <b-button
-          v-ripple
-          variant="success"
-          style="white-space: nowrap"
-          v-ripple.400="'rgba(113, 102, 240, 0.15)'"
-          @click="filter14days()"
-        >
-          Expire In 14 days
-        </b-button>
+        <div class="d-flex mt-2" style="align-items: center; gap: 1.25rem">
+          <b-button
+            v-ripple
+            variant="success"
+            style="white-space: nowrap"
+            v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+            :disabled="filterstatus === '7days' ? true : false"
+            @click="filter7days()"
+          >
+            Expire In 7 days
+          </b-button>
+          <b-button
+            v-ripple
+            variant="success"
+            style="white-space: nowrap"
+            v-ripple.400="'rgba(113, 102, 240, 0.15)'"
+            :disabled="filterstatus === '14days' ? true : false"
+            @click="filter14days()"
+          >
+            Expire In 14 days
+          </b-button>
+        </div>
         <div>
           <div>
             Custom
@@ -288,6 +292,17 @@
           />
         </div>
       </div>
+      <template #modal-footer="{ close }">
+      <b-button variant="primary" @click="applyFilter()">
+        Apply
+      </b-button>
+      <b-button variant="warning" @click="resetFilter()">
+        Reset
+      </b-button>
+      <b-button variant="secondary" @click="close()">
+        Cancel
+      </b-button>
+    </template>
     </b-modal>
   </b-card>
 
@@ -300,7 +315,7 @@ import {
 } from 'bootstrap-vue'
 import vSelect from 'vue-select'
 import Ripple from 'vue-ripple-directive'
-import { onUnmounted } from '@vue/composition-api'
+import { onUnmounted, ref } from '@vue/composition-api'
 import store from '@/store'
 import router from '@/router'
 import useSslList from './useSslList'
@@ -371,64 +386,82 @@ export default {
       return moment(date).format("YYYY-MM-DD HH:mm:ss")
     }
 
-    const today = new Date()
-    let start = ''
-    let end = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
-    let startDate = ''
-    let endDate = ''
+    const filterDate = ref(null)
+    const filterstatus = ref('')
+    const today = ref(new Date())
+    const start = ref('')
+    const end = ref(new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000))
+    const startDate = ref('')
+    const endDate = ref('')
 
-    let dateRange = [
-      today,
-      end
-    ]
+    const dateRange = ref([
+      today.value,
+      end.value
+    ])
 
     const filter7days = () => {
-      end = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
-      dateRange = [
-        today,
-        end
-      ]
-      const sYear = today.getFullYear()
-      const sMonth = (today.getMonth() + 1).toString().padStart(2, '0')
-      const sDay = today.getDate().toString().padStart(2, '0')
-      startDate = `${sYear}-${sMonth}-${sDay}`
-      const eYear = end.getFullYear()
-      const eMonth = (end.getMonth() + 1).toString().padStart(2, '0')
-      const eDay = end.getDate().toString().padStart(2, '0')
-      endDate = `${eYear}-${eMonth}-${eDay}`
-      filterSsl(startDate, endDate)
+      end.value = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
+      // dateRange.value = [
+      //   today.value,
+      //   end.value
+      // ]
+      const sYear = today.value.getFullYear()
+      const sMonth = (today.value.getMonth() + 1).toString().padStart(2, '0')
+      const sDay = today.value.getDate().toString().padStart(2, '0')
+      startDate.value = `${sYear}-${sMonth}-${sDay}`
+      const eYear = end.value.getFullYear()
+      const eMonth = (end.value.getMonth() + 1).toString().padStart(2, '0')
+      const eDay = end.value.getDate().toString().padStart(2, '0')
+      endDate.value = `${eYear}-${eMonth}-${eDay}`
+      filterstatus.value = '7days'
     }
 
     const filter14days = () => {
-      end = new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000)
-      dateRange = [
-        today,
-        end
-      ]
-      const sYear = today.getFullYear()
-      const sMonth = (today.getMonth() + 1).toString().padStart(2, '0')
-      const sDay = today.getDate().toString().padStart(2, '0')
-      startDate = `${sYear}-${sMonth}-${sDay}`
-      const eYear = end.getFullYear()
-      const eMonth = (end.getMonth() + 1).toString().padStart(2, '0')
-      const eDay = end.getDate().toString().padStart(2, '0')
-      endDate = `${eYear}-${eMonth}-${eDay}`
-      filterSsl(startDate, endDate)
+      end.value = new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000)
+      // dateRange.value = [
+      //   today.value,
+      //   end.value
+      // ]
+      const sYear = today.value.getFullYear()
+      const sMonth = (today.value.getMonth() + 1).toString().padStart(2, '0')
+      const sDay = today.value.getDate().toString().padStart(2, '0')
+      startDate.value = `${sYear}-${sMonth}-${sDay}`
+      const eYear = end.value.getFullYear()
+      const eMonth = (end.value.getMonth() + 1).toString().padStart(2, '0')
+      const eDay = end.value.getDate().toString().padStart(2, '0')
+      endDate.value = `${eYear}-${eMonth}-${eDay}`
+      filterstatus.value = '14days'
     }
 
     const customFilter = () => {
-      start = dateRange[0]
-      end = dateRange[1]
-      const sYear = start.getFullYear()
-      const sMonth = (start.getMonth() + 1).toString().padStart(2, '0')
-      const sDay = start.getDate().toString().padStart(2, '0')
-      startDate = `${sYear}-${sMonth}-${sDay}`
-      const eYear = end.getFullYear()
-      const eMonth = (end.getMonth() + 1).toString().padStart(2, '0')
-      const eDay = end.getDate().toString().padStart(2, '0')
-      endDate = `${eYear}-${eMonth}-${eDay}`
-      console.log(startDate, endDate)
-      filterSsl(startDate, endDate)
+      start.value = dateRange.value[0]
+      end.value = dateRange.value[1]
+      const sYear = start.value.getFullYear()
+      const sMonth = (start.value.getMonth() + 1).toString().padStart(2, '0')
+      const sDay = start.value.getDate().toString().padStart(2, '0')
+      startDate.value = `${sYear}-${sMonth}-${sDay}`
+      const eYear = end.value.getFullYear()
+      const eMonth = (end.value.getMonth() + 1).toString().padStart(2, '0')
+      const eDay = end.value.getDate().toString().padStart(2, '0')
+      endDate.value = `${eYear}-${eMonth}-${eDay}`
+      filterstatus.value = 'custom'
+    }
+
+    const applyFilter = () => {
+      filterSsl(startDate.value, endDate.value)
+      if (filterDate.value) {
+        filterDate.value.hide();
+      }
+    }
+
+    const resetFilter = () => {
+      startDate.value = ''
+      endDate.value = ''
+      filterstatus.value = ''
+      filterSsl(startDate.value, endDate.value)
+      if (filterDate.value) {
+        filterDate.value.hide();
+      }
     }
 
     const {
@@ -481,7 +514,11 @@ export default {
       filter7days,
       filter14days,
       customFilter,
-      filterSsl
+      filterSsl,
+      applyFilter,
+      filterstatus,
+      resetFilter,
+      filterDate
     }
   },
 }
